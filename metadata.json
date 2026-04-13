@@ -1,0 +1,5 @@
+{
+  "name": "Dan Lopez's ATS Resume Optimizer",
+  "description": "An applicant tracking system (ATS) tool for job seekers that analyzes resumes against job postings, provides skill-based scores, and offers AI-powered revisions with a human touch to help you land your next interview.",
+  "requestFramePermissions": []
+}
