@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
+import type { MetricsData } from '../types';
 
 const SYSTEM_PROMPT = `You are an expert ATS Keyword Matching Specialist and Professional Resume Architect with 18 years of workforce development experience. Your goal is to maximize the resume's match percentage against the Job Description while maintaining professional quality, readability, and the Action + Context + Result methodology.
 
@@ -11,8 +12,8 @@ KEYWORD MATCHING (Priority 1):
 
 QUANTIFICATION AND IMPACT (Priority 2):
 - Analyze every bullet point for potential to add measurable results
-- Integrate numerical values, percentages, or scale of responsibility (e.g., "managed 100+ clients," "reduced errors by 15%")
-- If the original lacks metrics, suggest realistic positive metrics aligned with the achievement
+- Use ONLY numbers from the CANDIDATE'S REAL METRICS section if provided — never fabricate numbers
+- Where no real metric exists, insert [#] or [X]% as a placeholder followed by "(Add your real number here)"
 
 STRUCTURAL ALIGNMENT (Priority 3):
 - Ensure a heavily tailored PROFESSIONAL SUMMARY or AREAS OF EXPERTISE section matching the JD's top 5 requirements
@@ -20,7 +21,7 @@ STRUCTURAL ALIGNMENT (Priority 3):
 - Place most relevant experience at the top of sections
 
 2026 STANDARDS (Priority 4):
-- Ensure at least 50% of bullet points contain measurable numbers or results
+- Ensure at least 50% of bullet points contain measurable numbers or results (real or placeholder)
 - If the resume lacks AI Literacy, add a section showing proficiency with relevant AI tools
 - Ensure the Professional Summary contains 3-5 measurable achievements
 - Add a TARGET ROLE line at the top if not present
@@ -36,6 +37,27 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
   "revisedResume": "<complete, fully revised resume text ready for the user to copy>"
 }`;
 
+function buildMetricsBlock(metrics: MetricsData | null, skipped: boolean): string {
+  if (skipped || !metrics) {
+    return `\n\nMETRICS INSTRUCTIONS: The candidate did not provide specific numbers. Insert [#] or [X]% placeholders throughout all bullet points that could benefit from metrics, followed by "(Add your real number here)". Do not fabricate any numbers.`;
+  }
+
+  const entries = [
+    metrics.peopleServed && `- People/clients/customers served: ${metrics.peopleServed}`,
+    metrics.processImprovement && `- Process improvements: ${metrics.processImprovement}`,
+    metrics.workVolume && `- Work volume: ${metrics.workVolume}`,
+    metrics.teamSize && `- Team size: ${metrics.teamSize}`,
+    metrics.accuracyScores && `- Accuracy/satisfaction scores: ${metrics.accuracyScores}`,
+    metrics.budgetImpact && `- Budget/cost/revenue impact: ${metrics.budgetImpact}`,
+  ].filter(Boolean);
+
+  if (entries.length === 0) {
+    return `\n\nMETRICS INSTRUCTIONS: No specific numbers were provided. Insert [#] or [X]% placeholders throughout all bullet points that could benefit from metrics, followed by "(Add your real number here)". Do not fabricate any numbers.`;
+  }
+
+  return `\n\nCANDIDATE'S REAL METRICS (use ONLY these numbers — do not fabricate others):\n${entries.join('\n')}\n\nFor any bullet where no matching metric was provided, insert [#] or [X]% as a placeholder followed by "(Add your real number here)".`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -46,7 +68,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  const { resume, jobDescription } = req.body as { resume: string; jobDescription: string };
+  const { resume, jobDescription, metrics, skipped } = req.body as {
+    resume: string;
+    jobDescription: string;
+    metrics: MetricsData | null;
+    skipped: boolean;
+  };
 
   if (!resume || !jobDescription) {
     return res.status(400).json({ error: 'resume and jobDescription are required' });
@@ -54,6 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const client = new Anthropic({ apiKey });
+    const metricsBlock = buildMetricsBlock(metrics, skipped);
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -62,7 +90,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       messages: [
         {
           role: 'user',
-          content: `Revise this resume to maximize its ATS match against the job description.\n\n**CANDIDATE'S CURRENT RESUME:**\n---\n${resume}\n---\n\n**TARGET JOB DESCRIPTION:**\n---\n${jobDescription}\n---\n\nReturn only the JSON object as specified.`,
+          content: `Revise this resume to maximize its ATS match against the job description.\n\n**CANDIDATE'S CURRENT RESUME:**\n---\n${resume}\n---\n\n**TARGET JOB DESCRIPTION:**\n---\n${jobDescription}\n---${metricsBlock}\n\nReturn only the JSON object as specified.`,
         },
       ],
     });

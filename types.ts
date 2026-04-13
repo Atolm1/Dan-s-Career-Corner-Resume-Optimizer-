@@ -23,3 +23,12 @@ export interface RevisionResult {
   topChanges: string[];
   revisedResume: string;
 }
+
+export interface MetricsData {
+  peopleServed: string;
+  processImprovement: string;
+  workVolume: string;
+  teamSize: string;
+  accuracyScores: string;
+  budgetImpact: string;
+}

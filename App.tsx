@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import type { AnalysisResult, RevisionResult } from './types';
+import type { AnalysisResult, RevisionResult, MetricsData } from './types';
 import { analyzeResumeAndJD, getRevisedResume } from './services/claudeService';
 import InputSection from './components/InputSection';
 import ResultsSection from './components/ResultsSection';
 import RevisedResume from './components/RevisedResume';
+import MetricsModal from './components/MetricsModal';
 import { SparklesIcon } from './components/icons/SparklesIcon';
 
 type Tier = 'free' | 'pro';
@@ -13,10 +14,12 @@ const App: React.FC = () => {
   const [jobDescriptionText, setJobDescriptionText] = useState('');
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [revisionData, setRevisionData] = useState<RevisionResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isRevising, setIsRevising] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRevising, setIsRevising] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tier, setTier] = useState<Tier>('free');
+  const [showMetricsModal, setShowMetricsModal] = useState(false);
+  const [skippedMetrics, setSkippedMetrics] = useState(false);
 
   const handleAnalyze = useCallback(async () => {
     if (!resumeText || !jobDescriptionText) {
@@ -27,6 +30,7 @@ const App: React.FC = () => {
     setError(null);
     setAnalysisResult(null);
     setRevisionData(null);
+    setSkippedMetrics(false);
 
     try {
       const result = await analyzeResumeAndJD(resumeText, jobDescriptionText);
@@ -39,8 +43,28 @@ const App: React.FC = () => {
     }
   }, [resumeText, jobDescriptionText]);
 
-  const handleRevise = useCallback(async () => {
+  // Called when the user clicks "Generate Revised Resume" — opens the modal
+  const handleReviseClick = useCallback(() => {
     if (tier === 'free') return;
+    setRevisionData(null);
+    setShowMetricsModal(true);
+  }, [tier]);
+
+  // Called from the modal submit button
+  const handleMetricsSubmit = useCallback(async (metrics: MetricsData) => {
+    setShowMetricsModal(false);
+    setSkippedMetrics(false);
+    await fireRevision(metrics, false);
+  }, [resumeText, jobDescriptionText]); // eslint-disable-line
+
+  // Called from the modal skip link
+  const handleMetricsSkip = useCallback(async () => {
+    setShowMetricsModal(false);
+    setSkippedMetrics(true);
+    await fireRevision(null, true);
+  }, [resumeText, jobDescriptionText]); // eslint-disable-line
+
+  const fireRevision = async (metrics: MetricsData | null, skipped: boolean) => {
     if (!resumeText || !jobDescriptionText) {
       setError('Cannot revise without a resume and job description.');
       return;
@@ -49,7 +73,7 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      const result = await getRevisedResume(resumeText, jobDescriptionText);
+      const result = await getRevisedResume(resumeText, jobDescriptionText, metrics, skipped);
       setRevisionData(result);
     } catch (e) {
       console.error(e);
@@ -57,7 +81,7 @@ const App: React.FC = () => {
     } finally {
       setIsRevising(false);
     }
-  }, [resumeText, jobDescriptionText, tier]);
+  };
 
   return (
     <div className="min-h-screen text-slate-200 font-sans">
@@ -126,11 +150,24 @@ const App: React.FC = () => {
           {analysisResult && (
             <ResultsSection
               result={analysisResult}
-              onRevise={handleRevise}
+              onRevise={handleReviseClick}
               isRevising={isRevising}
               tier={tier}
               onUnlockPro={() => setTier('pro')}
             />
+          )}
+
+          {/* Skipped-metrics banner */}
+          {skippedMetrics && revisionData && (
+            <div className="flex items-start gap-3 bg-amber-900/30 border border-amber-700/50 rounded-xl px-5 py-4">
+              <span className="text-amber-400 text-lg leading-none mt-0.5">⚠</span>
+              <p className="text-amber-300 text-sm leading-relaxed">
+                <span className="font-semibold">We've marked where metrics should go.</span> Look for{' '}
+                <code className="bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded text-xs">[#]</code> and{' '}
+                <code className="bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded text-xs">[X]%</code> placeholders
+                throughout your resume — replace them with your real numbers before sending.
+              </p>
+            </div>
           )}
 
           {revisionData && (
@@ -152,6 +189,14 @@ const App: React.FC = () => {
           </a>
         </p>
       </footer>
+
+      {/* Metrics Modal — rendered above everything */}
+      {showMetricsModal && (
+        <MetricsModal
+          onSubmit={handleMetricsSubmit}
+          onSkip={handleMetricsSkip}
+        />
+      )}
     </div>
   );
 };
