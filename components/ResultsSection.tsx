@@ -36,45 +36,62 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ result, onRevise, isRev
     { subject: 'Soft Skills', score: softSkills.score, fullMark: 100 },
   ];
 
-  const getScoreColor = (score: number) => {
+  const getRingColor = (score: number) => {
+    if (score >= 80) return '#10b981'; // emerald-500
+    if (score >= 60) return '#eab308'; // yellow-500
+    return '#ef4444';                  // red-500
+  };
+
+  const getScoreTextColor = (score: number) => {
     if (score >= 80) return 'text-emerald-400';
     if (score >= 60) return 'text-yellow-400';
     return 'text-red-400';
   };
 
-  const getScoreRingColor = (score: number) => {
-    if (score >= 80) return 'border-emerald-500 shadow-emerald-500/20';
-    if (score >= 60) return 'border-yellow-500 shadow-yellow-500/20';
-    return 'border-red-500 shadow-red-500/20';
+  const getBorderColor = (score: number) => {
+    if (score >= 80) return 'border-l-emerald-500';
+    if (score >= 60) return 'border-l-yellow-500';
+    return 'border-l-red-500';
   };
 
-  const SkillCard: React.FC<{ title: string; score: number; feedback: string }> = ({ title, score, feedback }) => {
-    const scoreColor = score > 75 ? 'text-green-400' : score > 50 ? 'text-yellow-400' : 'text-red-400';
-    return (
-      <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-        <h3 className="text-lg font-semibold text-cyan-400">{title}</h3>
-        <p className={`text-2xl font-bold my-1 ${scoreColor}`}>{score}/100</p>
-        <p className="text-slate-400 text-sm">{feedback}</p>
-      </div>
-    );
-  };
+  // Glass card base classes
+  const glassCard = 'bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4';
 
-  const ProScoreCard: React.FC<{ title: string; score: number; feedback: string; locked: boolean; onUnlock: () => void }> = ({
-    title, score, feedback, locked, onUnlock,
-  }) => {
-    const scoreColor = score > 75 ? 'text-green-400' : score > 50 ? 'text-yellow-400' : 'text-red-400';
+  const SkillCard: React.FC<{ title: string; score: number; feedback: string }> = ({ title, score, feedback }) => (
+    <div className={`${glassCard} border-l-4 ${getBorderColor(score)}`}>
+      <h3 className="text-base font-semibold text-cyan-400">{title}</h3>
+      <p className={`text-2xl font-bold my-1 ${getScoreTextColor(score)}`}>{score}/100</p>
+      <p className="text-slate-300 text-sm leading-relaxed">{feedback}</p>
+    </div>
+  );
+
+  const ProScoreCard: React.FC<{
+    title: string;
+    score: number;
+    feedback: string;
+    locked: boolean;
+    onUnlock: () => void;
+  }> = ({ title, score, feedback, locked, onUnlock }) => {
     if (locked) {
       return (
-        <div className="relative bg-slate-800/50 p-4 rounded-lg border border-slate-700 overflow-hidden">
+        <div className={`relative ${glassCard} border-l-4 border-l-slate-600 overflow-hidden min-h-[100px]`}>
+          {/* Blurred content behind */}
           <div className="blur-sm select-none pointer-events-none">
-            <h3 className="text-lg font-semibold text-cyan-400">{title}</h3>
+            <h3 className="text-base font-semibold text-cyan-400">{title}</h3>
             <p className="text-2xl font-bold my-1 text-yellow-400">72/100</p>
-            <p className="text-slate-400 text-sm">Upgrade to see detailed feedback for this category.</p>
+            <p className="text-slate-400 text-sm">Detailed feedback unlocked with Pro.</p>
           </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-[1px] rounded-lg">
-            <LockIcon className="w-6 h-6 text-teal-400 mb-1" />
-            <p className="text-xs font-semibold text-teal-300">Pro only</p>
-            <button onClick={onUnlock} className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 underline">
+          {/* Frosted gradient overlay */}
+          <div
+            className="absolute inset-0 rounded-xl flex flex-col items-center justify-center gap-1"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(11,22,40,0.2) 0%, rgba(11,22,40,0.75) 50%, rgba(11,22,40,0.92) 100%)',
+              backdropFilter: 'blur(2px)',
+            }}
+          >
+            <LockIcon className="w-5 h-5 text-teal-400" />
+            <span className="text-xs font-semibold text-teal-300">Pro only</span>
+            <button onClick={onUnlock} className="text-xs text-cyan-400 hover:text-cyan-300 underline mt-0.5">
               Unlock
             </button>
           </div>
@@ -82,10 +99,10 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ result, onRevise, isRev
       );
     }
     return (
-      <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-        <h3 className="text-lg font-semibold text-cyan-400">{title}</h3>
-        <p className={`text-2xl font-bold my-1 ${scoreColor}`}>{score}/100</p>
-        <p className="text-slate-400 text-sm">{feedback}</p>
+      <div className={`${glassCard} border-l-4 ${getBorderColor(score)}`}>
+        <h3 className="text-base font-semibold text-cyan-400">{title}</h3>
+        <p className={`text-2xl font-bold my-1 ${getScoreTextColor(score)}`}>{score}/100</p>
+        <p className="text-slate-300 text-sm leading-relaxed">{feedback}</p>
       </div>
     );
   };
@@ -93,66 +110,76 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ result, onRevise, isRev
   const visibleRecs = tier === 'free' ? recommendations.slice(0, 3) : recommendations;
 
   return (
-    <div className="mt-10 p-6 bg-slate-800 rounded-xl border border-slate-700 shadow-2xl">
-      <h2 className="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-500">
-        Analysis Results
-      </h2>
+    <div className="space-y-8">
+      {/* Results header */}
+      <div className={`${glassCard.replace('p-4', 'p-8')}`}>
+        <h2 className="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-400">
+          Analysis Results
+        </h2>
 
-      {/* Overall Score */}
-      <div className="flex flex-col items-center justify-center mb-10">
-        <div className={`relative flex items-center justify-center w-40 h-40 rounded-full border-[6px] ${getScoreRingColor(overallScore)} bg-slate-900 shadow-[0_0_30px_rgba(0,0,0,0.3)] transition-all duration-500`}>
-          <div className="text-center">
-            <span className={`text-5xl font-black tracking-tighter ${getScoreColor(overallScore)} drop-shadow-lg`}>
-              {overallScore}
-              <span className="text-2xl align-top opacity-70">%</span>
-            </span>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Match</p>
+        {/* Animated Score Ring */}
+        <div className="flex flex-col items-center mb-10">
+          <div
+            className="score-ring w-48 h-48 shadow-[0_0_40px_rgba(0,0,0,0.4)]"
+            style={{
+              '--target-pct': `${overallScore}%`,
+              '--ring-color': getRingColor(overallScore),
+            } as React.CSSProperties}
+          >
+            <div className="score-ring-inner w-[10.5rem] h-[10.5rem]">
+              <span className={`text-5xl font-black tracking-tighter ${getScoreTextColor(overallScore)}`}>
+                {overallScore}<span className="text-2xl align-top opacity-60">%</span>
+              </span>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Match</p>
+            </div>
           </div>
+          <p className="mt-5 text-slate-400 text-sm max-w-md text-center leading-relaxed">
+            Weighted score: Hard Skills 25% · Tech 20% · Metrics 20% · Soft Skills 15% · Summary 10% · Target Role 5% · AI Literacy 3% · Formatting 2%
+          </p>
         </div>
-        <p className="mt-4 text-slate-400 text-sm max-w-md text-center">
-          Weighted ATS score: Hard Skills 25% · Tech 20% · Metrics 20% · Soft Skills 15% · Summary 10% · Target Role 5% · AI Literacy 3% · Formatting 2%
-        </p>
-      </div>
 
-      {/* Core Skills + Radar Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 flex items-center justify-center p-4 bg-slate-900/50 rounded-lg">
-          <ScoreChart data={scoreData} />
-        </div>
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-1 gap-4">
-          <SkillCard title="Hard Skills" score={hardSkills.score} feedback={hardSkills.feedback} />
-          <SkillCard title="Soft Skills" score={softSkills.score} feedback={softSkills.feedback} />
-          <SkillCard title="Technical Skills" score={techSkills.score} feedback={techSkills.feedback} />
+        {/* Radar Chart + Core Skill Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 flex items-center justify-center p-4 bg-white/3 rounded-xl border border-white/5">
+            <ScoreChart data={scoreData} />
+          </div>
+          <div className="lg:col-span-2 flex flex-col gap-4">
+            <SkillCard title="Hard Skills" score={hardSkills.score} feedback={hardSkills.feedback} />
+            <SkillCard title="Soft Skills" score={softSkills.score} feedback={softSkills.feedback} />
+            <SkillCard title="Technical Skills" score={techSkills.score} feedback={techSkills.feedback} />
+          </div>
         </div>
       </div>
 
       {/* Metrics Density Callout */}
-      <div className="mt-8">
-        <div className={`flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-xl border ${metricsPassFail ? 'border-emerald-600/60 bg-emerald-900/20' : 'border-red-600/60 bg-red-900/20'}`}>
+      <div className={`${metricsPassFail ? 'metrics-pass-glow border-emerald-700/50' : 'border-red-700/50'} bg-white/5 backdrop-blur-sm border rounded-xl p-6`}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-cyan-400">Metrics Density</h3>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${metricsPassFail ? 'bg-emerald-700 text-emerald-200' : 'bg-red-700 text-red-200'}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-xl font-semibold text-cyan-400">Metrics Density</h3>
+              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${metricsPassFail ? 'bg-emerald-800/60 text-emerald-200' : 'bg-red-800/60 text-red-200 animate-pulse'}`}>
                 {metricsPassFail ? '✓ PASS' : '✗ FAIL'}
               </span>
             </div>
-            <p className="text-slate-400 text-sm">{metricsScore.feedback}</p>
+            <p className="text-slate-300 text-sm leading-relaxed">{metricsScore.feedback}</p>
           </div>
-          <div className="flex flex-col items-center min-w-[100px]">
-            <span className={`text-4xl font-black ${metricsPassFail ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className="flex flex-col items-center shrink-0 min-w-[110px] bg-white/5 rounded-xl p-4 border border-white/10">
+            <span className={`text-5xl font-black ${metricsPassFail ? 'text-emerald-400' : 'text-red-400'}`}>
               {metricsPercentage}%
             </span>
-            <span className="text-slate-500 text-xs mt-1">{bulletCount} bullets counted</span>
-            <span className="text-slate-500 text-xs">Target: 50%+</span>
+            <span className="text-slate-500 text-xs mt-1">{bulletCount} bullets</span>
+            <span className={`text-xs font-semibold mt-1 ${metricsPassFail ? 'text-emerald-500' : 'text-slate-500'}`}>
+              Target: 50%+
+            </span>
           </div>
         </div>
       </div>
 
-      {/* 2026 Standards Section */}
-      <div className="mt-8">
-        <div className="flex items-center gap-3 mb-4">
-          <h3 className="text-2xl font-semibold text-cyan-400">2026 Standards</h3>
-          <span className="text-xs bg-cyan-900/50 border border-cyan-700/50 text-cyan-300 px-2 py-0.5 rounded-full font-semibold">
+      {/* 2026 Standards */}
+      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-semibold text-cyan-400">2026 Standards</h3>
+          <span className="text-xs bg-cyan-900/50 border border-cyan-700/40 text-cyan-300 px-2.5 py-0.5 rounded-full font-semibold">
             NEW
           </span>
           {tier === 'free' && (
@@ -165,41 +192,17 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ result, onRevise, isRev
           )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ProScoreCard
-            title="Professional Summary"
-            score={summaryScore.score}
-            feedback={summaryScore.feedback}
-            locked={tier === 'free'}
-            onUnlock={onUnlockPro}
-          />
-          <ProScoreCard
-            title="Target Role Clarity"
-            score={targetRoleScore.score}
-            feedback={targetRoleScore.feedback}
-            locked={tier === 'free'}
-            onUnlock={onUnlockPro}
-          />
-          <ProScoreCard
-            title="AI Literacy (2026)"
-            score={aiLiteracyScore.score}
-            feedback={aiLiteracyScore.feedback}
-            locked={tier === 'free'}
-            onUnlock={onUnlockPro}
-          />
-          <ProScoreCard
-            title="ATS Formatting"
-            score={formattingScore.score}
-            feedback={formattingScore.feedback}
-            locked={tier === 'free'}
-            onUnlock={onUnlockPro}
-          />
+          <ProScoreCard title="Professional Summary" score={summaryScore.score} feedback={summaryScore.feedback} locked={tier === 'free'} onUnlock={onUnlockPro} />
+          <ProScoreCard title="Target Role Clarity" score={targetRoleScore.score} feedback={targetRoleScore.feedback} locked={tier === 'free'} onUnlock={onUnlockPro} />
+          <ProScoreCard title="AI Literacy (2026)" score={aiLiteracyScore.score} feedback={aiLiteracyScore.feedback} locked={tier === 'free'} onUnlock={onUnlockPro} />
+          <ProScoreCard title="ATS Formatting" score={formattingScore.score} feedback={formattingScore.feedback} locked={tier === 'free'} onUnlock={onUnlockPro} />
         </div>
       </div>
 
       {/* Recommendations */}
-      <div className="mt-8">
-        <div className="flex items-center gap-3 mb-4">
-          <h3 className="text-2xl font-semibold text-cyan-400">Recommendations</h3>
+      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-semibold text-cyan-400">Recommendations</h3>
           {tier === 'free' && recommendations.length > 3 && (
             <span className="text-xs text-slate-500 ml-auto">
               Showing 3 of {recommendations.length} —{' '}
@@ -209,15 +212,15 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ result, onRevise, isRev
             </span>
           )}
         </div>
-        <ul className="space-y-3 list-disc list-inside text-slate-300">
+        <ul className="space-y-3">
           {visibleRecs.map((rec, index) => (
-            <li key={index} className="bg-slate-800/50 p-3 rounded-md border-l-4 border-cyan-500">
-              {rec}
+            <li key={index} className="flex gap-3 bg-white/3 border border-white/8 p-4 rounded-lg border-l-4 border-l-cyan-600">
+              <span className="text-slate-300 text-sm leading-relaxed">{rec}</span>
             </li>
           ))}
         </ul>
         {tier === 'free' && recommendations.length > 3 && (
-          <div className="mt-3 flex items-center gap-2 p-3 bg-slate-900/50 rounded-lg border border-dashed border-slate-700">
+          <div className="flex items-center gap-3 p-4 bg-white/3 rounded-lg border border-dashed border-white/10">
             <LockIcon className="w-4 h-4 text-teal-400 shrink-0" />
             <p className="text-slate-500 text-sm">
               {recommendations.length - 3} more recommendations hidden.{' '}
@@ -231,12 +234,12 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ result, onRevise, isRev
       </div>
 
       {/* Generate Revised Resume Button */}
-      <div className="mt-8 text-center">
+      <div className="text-center pb-4">
         {tier === 'free' ? (
           <div className="flex flex-col items-center gap-2">
             <button
               onClick={onUnlockPro}
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-slate-700 border border-dashed border-teal-600 text-slate-400 font-bold rounded-lg cursor-pointer hover:border-teal-400 hover:text-teal-300 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-white/5 border border-dashed border-teal-600/60 text-slate-400 font-bold rounded-xl hover:border-teal-400 hover:text-teal-300 transition-colors"
             >
               <LockIcon className="w-5 h-5 text-teal-500" />
               Generate Revised Resume
@@ -247,16 +250,16 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ result, onRevise, isRev
           <button
             onClick={onRevise}
             disabled={isRevising}
-            className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-bold rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+            className="btn-shimmer inline-flex items-center justify-center gap-2 px-10 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-teal-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-shadow duration-200"
           >
             {isRevising ? (
               <>
-                <LoadingSpinner className="mr-2" />
+                <LoadingSpinner className="w-5 h-5" />
                 Revising...
               </>
             ) : (
               <>
-                <SparklesIcon className="mr-2" />
+                <SparklesIcon className="w-5 h-5" />
                 Generate Revised Resume
               </>
             )}

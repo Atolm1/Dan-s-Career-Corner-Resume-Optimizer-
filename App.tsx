@@ -60,26 +60,26 @@ const App: React.FC = () => {
   }, [resumeText, jobDescriptionText, tier]);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 font-sans">
-      <main className="container mx-auto px-4 py-8 md:py-12">
-        <header className="text-center mb-6">
-          <div className="flex items-center justify-center gap-3 mb-2">
+    <div className="min-h-screen text-slate-200 font-sans">
+      <main className="container mx-auto px-4 py-10 md:py-16 max-w-5xl">
+
+        {/* Header */}
+        <header className="text-center mb-10 space-y-3">
+          <div className="flex items-center justify-center gap-3">
             <SparklesIcon className="w-10 h-10 text-cyan-400" />
-            <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-500">
-              ATS Resume Optimizer
+            <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-400">
+              ResumeLens
             </h1>
           </div>
-          <div className="inline-flex items-center gap-2 bg-cyan-900/30 border border-cyan-700/50 rounded-full px-4 py-1 mb-3">
-            <span className="text-cyan-400 text-xs font-bold uppercase tracking-widest">Think Like a Recruiter</span>
-          </div>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            2026 ATS standards. Human judgment encoded into AI. Built by Dan Lopez with 18 years of workforce development experience.
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            See your resume the way recruiters and hiring software actually do.
+            Built on 18 years of workforce development expertise.
           </p>
         </header>
 
         {/* Pro Upgrade Banner */}
         {tier === 'free' && (
-          <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-teal-900/60 to-cyan-900/60 border border-teal-600/50 rounded-xl px-5 py-4">
+          <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-5 py-4">
             <div>
               <p className="font-semibold text-teal-300 text-sm">You're on the Free tier</p>
               <p className="text-slate-400 text-sm mt-0.5">
@@ -96,7 +96,7 @@ const App: React.FC = () => {
         )}
 
         {tier === 'pro' && (
-          <div className="mb-8 flex items-center justify-between gap-4 bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-600/50 rounded-xl px-5 py-3">
+          <div className="mb-8 flex items-center justify-between gap-4 bg-emerald-900/20 border border-emerald-700/40 rounded-xl px-5 py-3">
             <p className="text-emerald-300 text-sm font-semibold">Pro tier active — all features unlocked</p>
             <button
               onClick={() => setTier('free')}
@@ -107,38 +107,50 @@ const App: React.FC = () => {
           </div>
         )}
 
-        <InputSection
-          resume={resumeText}
-          setResume={setResumeText}
-          jobDescription={jobDescriptionText}
-          setJobDescription={setJobDescriptionText}
-          onAnalyze={handleAnalyze}
-          isLoading={isLoading}
-        />
-
-        {error && (
-          <div className="mt-6 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
-            {error}
-          </div>
-        )}
-
-        {analysisResult && (
-          <ResultsSection
-            result={analysisResult}
-            onRevise={handleRevise}
-            isRevising={isRevising}
-            tier={tier}
-            onUnlockPro={() => setTier('pro')}
+        <div className="space-y-8">
+          <InputSection
+            resume={resumeText}
+            setResume={setResumeText}
+            jobDescription={jobDescriptionText}
+            setJobDescription={setJobDescriptionText}
+            onAnalyze={handleAnalyze}
+            isLoading={isLoading}
           />
-        )}
 
-        {revisionData && (
-          <RevisedResume revisionResult={revisionData} />
-        )}
+          {error && (
+            <div className="bg-red-900/40 border border-red-700/60 text-red-300 px-5 py-4 rounded-xl text-center">
+              {error}
+            </div>
+          )}
+
+          {analysisResult && (
+            <ResultsSection
+              result={analysisResult}
+              onRevise={handleRevise}
+              isRevising={isRevising}
+              tier={tier}
+              onUnlockPro={() => setTier('pro')}
+            />
+          )}
+
+          {revisionData && (
+            <RevisedResume revisionResult={revisionData} />
+          )}
+        </div>
       </main>
 
-      <footer className="text-center py-6 text-slate-500 text-sm">
-        <p>Built by Dan Lopez | <span className="text-cyan-700">Dan's Career Corner</span></p>
+      <footer className="text-center py-8 text-slate-500 text-sm border-t border-white/5">
+        <p>
+          Built by Dan Lopez ·{' '}
+          <a
+            href="https://danscareercorner.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cyan-600 hover:text-cyan-400 transition-colors"
+          >
+            Dan's Career Corner
+          </a>
+        </p>
       </footer>
     </div>
   );
