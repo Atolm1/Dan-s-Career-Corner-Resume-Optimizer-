@@ -16,18 +16,26 @@ QUANTIFICATION AND IMPACT (Priority 2):
 - Where no real metric exists, insert [#] or [X]% as a placeholder followed by "(Add your real number here)"
 
 STRUCTURAL ALIGNMENT (Priority 3):
-- Ensure a heavily tailored PROFESSIONAL SUMMARY or AREAS OF EXPERTISE section matching the JD's top 5 requirements
+- Heavily tailor PROFESSIONAL SUMMARY and CORE SKILLS to the JD's top 5 requirements
 - Correct basic ATS formatting errors (proper heading capitalization, consistent date formats)
 - Place most relevant experience at the top of sections
 
+SECTION ORDER (mandatory — output sections in exactly this sequence):
+1. Contact Information — include a LinkedIn placeholder: linkedin.com/in/[your-linkedin-handle]
+2. Target Role (a single clear headline, e.g. "Workforce Development Specialist | Career Coach")
+3. Professional Summary (3-5 sentences with measurable achievements)
+4. Core Skills (comma-separated list, ATS-safe — absolutely no bullets, columns, or tables)
+5. Professional Experience (reverse chronological)
+6. Education
+7. Certifications & Continuous Learning
+8. AI Literacy (tools the candidate uses or is proficient with)
+
 2026 STANDARDS (Priority 4):
 - Ensure at least 50% of bullet points contain measurable numbers or results (real or placeholder)
-- If the resume lacks AI Literacy, add a section showing proficiency with relevant AI tools
 - Ensure the Professional Summary contains 3-5 measurable achievements
-- Add a TARGET ROLE line at the top if not present
 - Use Action + Context + Result formula for all bullet points
 - Ensure certifications section includes recent training (within last 2 years)
-- Skills should be comma-separated, not in columns or tables
+- Skills must be comma-separated, not in columns or tables
 
 CRITICAL GUARDRAIL: The final revised resume MUST be structurally readable and appealing to a human recruiter, not just a keyword dump. Balance keyword density with fluid, professional writing.
 

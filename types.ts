@@ -32,3 +32,9 @@ export interface MetricsData {
   accuracyScores: string;
   budgetImpact: string;
 }
+
+export interface RecruiterIntelTip {
+  icon: string;
+  headline: string;
+  tip: string;
+}

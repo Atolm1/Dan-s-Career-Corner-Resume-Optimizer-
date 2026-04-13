@@ -23,7 +23,7 @@ const RevisedResume: React.FC<RevisedResumeProps> = ({ revisionResult }) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'optimized-resume.txt');
+    link.setAttribute('download', 'resumelens-optimized.txt');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -31,50 +31,72 @@ const RevisedResume: React.FC<RevisedResumeProps> = ({ revisionResult }) => {
   };
 
   return (
-    <div className="mt-10 p-6 bg-slate-800 rounded-xl border border-slate-700 shadow-2xl">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">Your Optimized Resume</h2>
+    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+
+      {/* Header row */}
+      <div className="flex justify-between items-center px-6 py-5 border-b border-white/8">
+        <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400">
+          Your Optimized Resume
+        </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
-            className="flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-lg transition-colors duration-200"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white/8 hover:bg-white/12 border border-white/10 text-slate-300 text-sm font-medium rounded-lg transition-colors"
           >
-            {copied ? (
-              <>
-                <CheckIcon className="mr-2" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <ClipboardIcon className="mr-2" />
-                Copy
-              </>
-            )}
+            {copied ? <><CheckIcon className="w-4 h-4 text-emerald-400" /> Copied!</> : <><ClipboardIcon className="w-4 h-4" /> Copy</>}
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-lg transition-colors duration-200"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white/8 hover:bg-white/12 border border-white/10 text-slate-300 text-sm font-medium rounded-lg transition-colors"
           >
-            <DownloadIcon className="mr-2" />
-            Download
+            <DownloadIcon className="w-4 h-4" /> Download
           </button>
         </div>
       </div>
 
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold text-cyan-400 mb-3">Key Optimizations Made</h3>
-        <ul className="space-y-2">
-          {topChanges.map((change, index) => (
-            <li key={index} className="flex items-start">
-              <span className="text-cyan-400 mr-2 mt-1">&#10003;</span>
-              <span className="text-slate-300">{change}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <div className="px-6 py-5 space-y-4">
+        {/* Disclaimer banner */}
+        <div className="flex items-start gap-3 bg-emerald-900/20 border border-emerald-700/40 rounded-xl px-4 py-3">
+          <span className="text-emerald-400 text-sm font-bold shrink-0 mt-0.5">✓</span>
+          <p className="text-emerald-300 text-sm leading-relaxed">
+            <span className="font-semibold">ResumeLens never fabricates your experience.</span>{' '}
+            Numbers marked{' '}
+            <code className="bg-slate-800 text-cyan-400 px-1 py-0.5 rounded text-xs">[#]</code> and{' '}
+            <code className="bg-slate-800 text-cyan-400 px-1 py-0.5 rounded text-xs">[X]%</code>{' '}
+            are yours to complete.
+          </p>
+        </div>
 
-      <div className="prose prose-invert max-w-none bg-slate-900/50 p-4 rounded-lg border border-slate-700 whitespace-pre-wrap">
-        {revisedResume}
+        {/* LinkedIn reminder banner */}
+        <div className="flex items-start gap-3 bg-sky-900/20 border border-sky-700/40 rounded-xl px-4 py-3">
+          <span className="text-sky-400 text-sm shrink-0 mt-0.5">📎</span>
+          <p className="text-sky-300 text-sm leading-relaxed">
+            <span className="font-semibold">Don't forget to add your LinkedIn URL</span> — recruiters
+            check it before calling. Replace{' '}
+            <code className="bg-slate-800 text-cyan-400 px-1 py-0.5 rounded text-xs">
+              linkedin.com/in/[your-linkedin-handle]
+            </code>{' '}
+            with your actual profile link.
+          </p>
+        </div>
+
+        {/* Key Optimizations */}
+        <div>
+          <h3 className="text-base font-semibold text-cyan-400 mb-3">Key Optimizations Made</h3>
+          <ul className="space-y-2">
+            {topChanges.map((change, index) => (
+              <li key={index} className="flex items-start gap-2.5">
+                <span className="text-teal-400 font-bold shrink-0 mt-0.5">✓</span>
+                <span className="text-slate-300 text-sm leading-relaxed">{change}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Resume text */}
+        <div className="bg-slate-900/60 border border-white/8 rounded-xl p-5 whitespace-pre-wrap text-slate-300 text-sm leading-relaxed font-mono">
+          {revisedResume}
+        </div>
       </div>
     </div>
   );

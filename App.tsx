@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import type { AnalysisResult, RevisionResult, MetricsData } from './types';
-import { analyzeResumeAndJD, getRevisedResume } from './services/claudeService';
+import type { AnalysisResult, RevisionResult, MetricsData, RecruiterIntelTip } from './types';
+import { analyzeResumeAndJD, getRevisedResume, getRecruiterIntel } from './services/claudeService';
 import InputSection from './components/InputSection';
 import ResultsSection from './components/ResultsSection';
 import RevisedResume from './components/RevisedResume';
+import RecruiterIntel from './components/RecruiterIntel';
 import MetricsModal from './components/MetricsModal';
 import { SparklesIcon } from './components/icons/SparklesIcon';
 
@@ -14,8 +15,10 @@ const App: React.FC = () => {
   const [jobDescriptionText, setJobDescriptionText] = useState('');
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [revisionData, setRevisionData] = useState<RevisionResult | null>(null);
+  const [intelData, setIntelData] = useState<RecruiterIntelTip[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRevising, setIsRevising] = useState(false);
+  const [isLoadingIntel, setIsLoadingIntel] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tier, setTier] = useState<Tier>('free');
   const [showMetricsModal, setShowMetricsModal] = useState(false);
@@ -30,6 +33,7 @@ const App: React.FC = () => {
     setError(null);
     setAnalysisResult(null);
     setRevisionData(null);
+    setIntelData(null);
     setSkippedMetrics(false);
 
     try {
@@ -43,44 +47,48 @@ const App: React.FC = () => {
     }
   }, [resumeText, jobDescriptionText]);
 
-  // Called when the user clicks "Generate Revised Resume" — opens the modal
+  // Opens the modal — actual API call fires after modal submit/skip
   const handleReviseClick = useCallback(() => {
     if (tier === 'free') return;
     setRevisionData(null);
+    setIntelData(null);
     setShowMetricsModal(true);
   }, [tier]);
 
-  // Called from the modal submit button
-  const handleMetricsSubmit = useCallback(async (metrics: MetricsData) => {
+  const handleMetricsSubmit = useCallback((metrics: MetricsData) => {
     setShowMetricsModal(false);
     setSkippedMetrics(false);
-    await fireRevision(metrics, false);
+    fireRevision(metrics, false);
   }, [resumeText, jobDescriptionText]); // eslint-disable-line
 
-  // Called from the modal skip link
-  const handleMetricsSkip = useCallback(async () => {
+  const handleMetricsSkip = useCallback(() => {
     setShowMetricsModal(false);
     setSkippedMetrics(true);
-    await fireRevision(null, true);
+    fireRevision(null, true);
   }, [resumeText, jobDescriptionText]); // eslint-disable-line
 
-  const fireRevision = async (metrics: MetricsData | null, skipped: boolean) => {
+  // Fires revision + intel in parallel; each resolves independently for best UX
+  const fireRevision = (metrics: MetricsData | null, skipped: boolean) => {
     if (!resumeText || !jobDescriptionText) {
       setError('Cannot revise without a resume and job description.');
       return;
     }
     setIsRevising(true);
+    setIsLoadingIntel(true);
     setError(null);
 
-    try {
-      const result = await getRevisedResume(resumeText, jobDescriptionText, metrics, skipped);
-      setRevisionData(result);
-    } catch (e) {
-      console.error(e);
-      setError('An error occurred while revising the resume. Please try again.');
-    } finally {
-      setIsRevising(false);
-    }
+    getRevisedResume(resumeText, jobDescriptionText, metrics, skipped)
+      .then((result) => setRevisionData(result))
+      .catch((e) => {
+        console.error(e);
+        setError('An error occurred while revising the resume. Please try again.');
+      })
+      .finally(() => setIsRevising(false));
+
+    getRecruiterIntel(resumeText, jobDescriptionText)
+      .then((tips) => setIntelData(tips))
+      .catch((e) => console.error('Intel fetch failed:', e))
+      .finally(() => setIsLoadingIntel(false));
   };
 
   return (
@@ -101,13 +109,13 @@ const App: React.FC = () => {
           </p>
         </header>
 
-        {/* Pro Upgrade Banner */}
+        {/* Tier banners */}
         {tier === 'free' && (
           <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-5 py-4">
             <div>
               <p className="font-semibold text-teal-300 text-sm">You're on the Free tier</p>
               <p className="text-slate-400 text-sm mt-0.5">
-                Unlock all 2026 scores, full recommendations, and the AI resume rewriter.
+                Unlock all 2026 scores, full recommendations, the AI rewriter, and Recruiter Intel.
               </p>
             </div>
             <button
@@ -122,10 +130,7 @@ const App: React.FC = () => {
         {tier === 'pro' && (
           <div className="mb-8 flex items-center justify-between gap-4 bg-emerald-900/20 border border-emerald-700/40 rounded-xl px-5 py-3">
             <p className="text-emerald-300 text-sm font-semibold">Pro tier active — all features unlocked</p>
-            <button
-              onClick={() => setTier('free')}
-              className="text-slate-500 hover:text-slate-400 text-xs underline"
-            >
+            <button onClick={() => setTier('free')} className="text-slate-500 hover:text-slate-400 text-xs underline">
               Switch to Free
             </button>
           </div>
@@ -164,14 +169,17 @@ const App: React.FC = () => {
               <p className="text-amber-300 text-sm leading-relaxed">
                 <span className="font-semibold">We've marked where metrics should go.</span> Look for{' '}
                 <code className="bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded text-xs">[#]</code> and{' '}
-                <code className="bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded text-xs">[X]%</code> placeholders
-                throughout your resume — replace them with your real numbers before sending.
+                <code className="bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded text-xs">[X]%</code>{' '}
+                placeholders — replace them with your real numbers before sending.
               </p>
             </div>
           )}
 
-          {revisionData && (
-            <RevisedResume revisionResult={revisionData} />
+          {revisionData && <RevisedResume revisionResult={revisionData} />}
+
+          {/* Recruiter Intel — shown when revision has fired (loading or ready) */}
+          {(isLoadingIntel || intelData) && (
+            <RecruiterIntel tips={intelData} isLoading={isLoadingIntel} />
           )}
         </div>
       </main>
@@ -190,12 +198,8 @@ const App: React.FC = () => {
         </p>
       </footer>
 
-      {/* Metrics Modal — rendered above everything */}
       {showMetricsModal && (
-        <MetricsModal
-          onSubmit={handleMetricsSubmit}
-          onSkip={handleMetricsSkip}
-        />
+        <MetricsModal onSubmit={handleMetricsSubmit} onSkip={handleMetricsSkip} />
       )}
     </div>
   );
