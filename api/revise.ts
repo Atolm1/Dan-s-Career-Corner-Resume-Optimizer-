@@ -24,7 +24,7 @@ SECTION ORDER (mandatory — output sections in exactly this sequence):
 1. Contact Information — include a LinkedIn placeholder: linkedin.com/in/[your-linkedin-handle]
 2. Target Role (a single clear headline, e.g. "Workforce Development Specialist | Career Coach")
 3. Professional Summary (3-5 sentences with measurable achievements)
-4. Core Skills (comma-separated list, ATS-safe — absolutely no bullets, columns, or tables)
+4. Core Skills (comma-separated list, ATS-safe — absolutely no bullets, columns, or tables; maximum 12-15 skills — prioritize exact keyword matches from the JD first, then the candidate's strongest transferable skills; do NOT pad with generic soft skills like "Team Player" or "Hard Worker")
 5. Professional Experience (reverse chronological)
 6. Education
 7. Certifications & Continuous Learning
@@ -34,8 +34,11 @@ SECTION ORDER (mandatory — output sections in exactly this sequence):
 - Ensure at least 50% of bullet points contain measurable numbers or results (real or placeholder)
 - Ensure the Professional Summary contains 3-5 measurable achievements
 - Use Action + Context + Result formula for all bullet points
-- Ensure certifications section includes recent training (within last 2 years)
 - Skills must be comma-separated, not in columns or tables
+
+CRITICAL — CERTIFICATIONS & CONTINUOUS LEARNING: Only include certifications, courses, or training that explicitly appear in the candidate's original resume. Do NOT add, invent, or suggest certifications that are not present in the source document. If no certifications exist in the original resume, either omit this section entirely or add a single placeholder line: [Add any relevant certifications or recent training here]
+
+AI LITERACY: Only include AI tools the candidate explicitly mentions in their original resume. Do not fabricate AI proficiency. If no AI tools are mentioned in the source resume, add this placeholder line only: [Add any AI tools you use: e.g., ChatGPT, Copilot, Gemini — with a brief description of how you use them]
 
 CRITICAL GUARDRAIL: The final revised resume MUST be structurally readable and appealing to a human recruiter, not just a keyword dump. Balance keyword density with fluid, professional writing.
 
