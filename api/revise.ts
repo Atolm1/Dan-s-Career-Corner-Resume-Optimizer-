@@ -13,7 +13,7 @@ KEYWORD MATCHING (Priority 1):
 QUANTIFICATION AND IMPACT (Priority 2):
 - Analyze every bullet point for potential to add measurable results
 - Use ONLY numbers from the CANDIDATE'S REAL METRICS section if provided — never fabricate numbers
-- Where no real metric exists, insert [#] or [X]% as a placeholder followed by "(Add your real number here)"
+- Where no real metric exists, insert [#] or [X]% as a placeholder — do NOT append any explanatory text like "(Add your real number here)" after placeholders; the placeholders alone are sufficient
 
 STRUCTURAL ALIGNMENT (Priority 3):
 - Heavily tailor PROFESSIONAL SUMMARY and CORE SKILLS to the JD's top 5 requirements
@@ -24,7 +24,7 @@ SECTION ORDER (mandatory — output sections in exactly this sequence):
 1. Contact Information — include a LinkedIn placeholder: linkedin.com/in/[your-linkedin-handle]
 2. Target Role (a single clear headline, e.g. "Workforce Development Specialist | Career Coach")
 3. Professional Summary (3-5 sentences with measurable achievements)
-4. Core Skills (comma-separated list, ATS-safe — absolutely no bullets, columns, or tables; maximum 12-15 skills — prioritize exact keyword matches from the JD first, then the candidate's strongest transferable skills; do NOT pad with generic soft skills like "Team Player" or "Hard Worker")
+4. Core Skills (comma-separated list, ATS-safe — absolutely no bullets, columns, or tables; hard maximum of 12 skills — prioritize exact keyword matches from the JD first, then the candidate's strongest transferable skills; if trimming is needed, cut the most generic ones last, e.g. "Administrative Support" or "Data Entry" are lower priority than specific JD matches; do NOT pad with generic soft skills like "Team Player" or "Hard Worker")
 5. Professional Experience (reverse chronological)
 6. Education
 7. Certifications & Continuous Learning
@@ -50,7 +50,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
 
 function buildMetricsBlock(metrics: MetricsData | null, skipped: boolean): string {
   if (skipped || !metrics) {
-    return `\n\nMETRICS INSTRUCTIONS: The candidate did not provide specific numbers. Insert [#] or [X]% placeholders throughout all bullet points that could benefit from metrics, followed by "(Add your real number here)". Do not fabricate any numbers.`;
+    return `\n\nMETRICS INSTRUCTIONS: The candidate did not provide specific numbers. Insert [#] or [X]% placeholders throughout all bullet points that could benefit from metrics. Do not append any explanatory text after placeholders. Do not fabricate any numbers.`;
   }
 
   const entries = [
@@ -63,10 +63,10 @@ function buildMetricsBlock(metrics: MetricsData | null, skipped: boolean): strin
   ].filter(Boolean);
 
   if (entries.length === 0) {
-    return `\n\nMETRICS INSTRUCTIONS: No specific numbers were provided. Insert [#] or [X]% placeholders throughout all bullet points that could benefit from metrics, followed by "(Add your real number here)". Do not fabricate any numbers.`;
+    return `\n\nMETRICS INSTRUCTIONS: No specific numbers were provided. Insert [#] or [X]% placeholders throughout all bullet points that could benefit from metrics. Do not append any explanatory text after placeholders. Do not fabricate any numbers.`;
   }
 
-  return `\n\nCANDIDATE'S REAL METRICS (use ONLY these numbers — do not fabricate others):\n${entries.join('\n')}\n\nFor any bullet where no matching metric was provided, insert [#] or [X]% as a placeholder followed by "(Add your real number here)".`;
+  return `\n\nCANDIDATE'S REAL METRICS (use ONLY these numbers — do not fabricate others):\n${entries.join('\n')}\n\nFor any bullet where no matching metric was provided, insert [#] or [X]% as a placeholder only — no explanatory text after the placeholder.`;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
